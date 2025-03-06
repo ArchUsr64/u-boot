@@ -1,3 +1,4 @@
+#define DEBUG
 // SPDX-License-Identifier:     GPL-2.0+
 /*
  * K3: ARM64 MMU setup
