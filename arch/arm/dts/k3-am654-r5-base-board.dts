@@ -133,8 +133,18 @@
 	      <0x0 0x50000000 0x0 0x8000000>;
 };
 
+&main_pmx0 {
+	bootph-all;
+	usb0_pins_default: usb0_pins_default {
+		pinctrl-single,pins = <
+				AM65X_IOPAD(0x02bc, PIN_OUTPUT, 0) /* (AD9) USB0_DRVVBUS */
+		>;
+	};
+};
+
 &dwc3_0 {
 	status = "okay";
+	bootph-all;
 	/delete-property/ clocks;
 	/delete-property/ power-domains;
 	/delete-property/ assigned-clocks;
@@ -152,6 +162,19 @@
 		reg= <0x0 0x40f04040 0x0 0x4>;
 		reg-names = "gmii-sel";
 	};
+};
+
+&usb0_phy {
+	status = "okay";
+	bootph-all;
+	/delete-property/ clocks;
+};
+
+&usb0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&usb0_pins_default>;
+	dr_mode = "peripheral";
+	bootph-all;
 };
 
 &usb1 {
