@@ -265,6 +265,30 @@ static __maybe_unused void k3_dma_remove(void)
 
 void spl_board_prepare_for_boot(void)
 {
+#if IS_ENABLED(CONFIG_ARM) && !IS_ENABLED(CONFIG_ARM64)
+	printf("Jump inst set!\n");
+	const volatile void *OLD_PRELOADED_BL33_BASE = (void *)0x80080000;
+	/*
+	 * A53 SPL used to be loaded at this address before ATF's breaking
+	 * change to PRELOADED_BL33_BASE from 0x80080000 to 0x80200000.
+	 *
+	 * To preserve backwards compatibility with older ATF binaries, we
+	 * write a jump instruction at the old PRELOADED_BL33_BASE which is
+	 * 0x80080000 that takes us to 0x80200000 (i.e. where the BL33 payload
+	 * is loaded).
+	 *
+	 * The ARM-64 op-codes correspond to following 3 instructions:
+	 *   movz x30, #0x8020
+	 *   lsl  x30, x30, #0x10
+	 *   br   x30
+	 */
+	*(int *)(OLD_PRELOADED_BL33_BASE) = 0xd290041e;
+	*(int *)(OLD_PRELOADED_BL33_BASE + 4) = 0xd370bfde;
+	*(int *)(OLD_PRELOADED_BL33_BASE + 8) = 0xd61f03c0;
+	flush_dcache_range((unsigned long)OLD_PRELOADED_BL33_BASE,
+			   ROUND((unsigned long)OLD_PRELOADED_BL33_BASE,
+				 CONFIG_SYS_CACHELINE_SIZE));
+#endif
 #if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
 	dcache_disable();
 #endif
