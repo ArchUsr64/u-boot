@@ -152,14 +152,14 @@ This provides an overview memory usage in A53 SPL stage.
 
    * - EMPTY
      - 0x80000000
-     - 0x80080000
+     - 0x80200000
 
    * - TEXT BASE
-     - 0x80080000
-     - 0x800d8000
+     - 0x80200000
+     - 0x80258000
 
    * - EMPTY
-     - 0x800d8000
+     - 0x80258000
      - 0x80477660
 
    * - STACK

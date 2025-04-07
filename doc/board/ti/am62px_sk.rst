@@ -201,17 +201,9 @@ This provides an overview memory usage in A53 SPL stage.
 
    * - EMPTY
      - 0x80000000
-     - 0x80080000
-
-   * - TEXT BASE
-     - 0x80080000
-     - 0x800d8000
-
-   * - EMPTY
-     - 0x800d8000
      - 0x80200000
 
-   * - BMP IMAGE
+   * - TEXT BASE / BMP Image
      - 0x80200000
      - 0x80b77660
 
