@@ -5,6 +5,8 @@
 
 #include "k3-security.h"
 
+#define LEGACY_ATF_PRELOADED_BL33_BASE 0x80080000
+
 / {
 	binman: binman {
 		multiple-images;
@@ -325,6 +327,22 @@
 					};
 				};
 
+				jump-stub {
+					description = "Jump stub for backwards compatibility with older ATF builds";
+					type = "firmware";
+					arch = "arm64";
+					compression = "none";
+					load = <LEGACY_ATF_PRELOADED_BL33_BASE>;
+					entry = <LEGACY_ATF_PRELOADED_BL33_BASE>;
+					ti-secure {
+						content = <&jump_stub>;
+						keyfile = "custMpk.pem";
+					};
+					jump_stub: blob-ext {
+						filename = "jump_stub.bin";
+					};
+				};
+
 			};
 		};
 	};
@@ -387,6 +405,19 @@
 						filename = "spl/u-boot-spl-nodtb.bin";
 					};
 				};
+
+				jump-stub {
+					description = "Jump stub for backwards compatibility with older ATF builds";
+					type = "firmware";
+					arch = "arm64";
+					compression = "none";
+					load = <LEGACY_ATF_PRELOADED_BL33_BASE>;
+					entry = <LEGACY_ATF_PRELOADED_BL33_BASE>;
+					blob-ext {
+						filename = "jump_stub.bin";
+					};
+				};
+
 			};
 		};
 	};
@@ -538,6 +569,22 @@
 					load = <0x89000000>;
 					entry = <0x89000000>;
 				};
+				jump-stub {
+					description = "Jump stub for backwards compatibility with older ATF builds";
+					type = "firmware";
+					arch = "arm64";
+					compression = "none";
+					load = <LEGACY_ATF_PRELOADED_BL33_BASE>;
+					entry = <LEGACY_ATF_PRELOADED_BL33_BASE>;
+					ti-secure {
+						content = <&jump_stub_falcon>;
+						keyfile = "custMpk.pem";
+					};
+					jump_stub_falcon: blob-ext {
+						filename = "jump_stub.bin";
+					};
+				};
+
 			};
 		};
 	};
