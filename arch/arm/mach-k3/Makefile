@@ -17,3 +17,10 @@ obj-$(CONFIG_SOC_K3_J7200) += j7200/
 obj-$(CONFIG_SOC_K3_J721S2) += j721s2/
 obj-$(CONFIG_SOC_K3_J722S) += j722s/
 obj-$(CONFIG_SOC_K3_J784S4) += j784s4/
+
+ifdef CONFIG_ARM64
+obj-y += jump_stub.o
+$(src)/jump_stub.o: $(src)/jump_stub.s
+	$(AS) $(src)/jump_stub.s -o $(src)/jump_stub.o
+	$(OBJCOPY) -O binary --only-section .text $(src)/jump_stub.o jump_stub.bin
+endif
