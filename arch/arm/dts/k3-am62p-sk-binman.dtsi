@@ -218,7 +218,8 @@
 				conf-0 {
 					description = "k3-am62p5-sk-falcon";
 					firmware = "atf";
-					loadables = "tee", "dm", "tifsstub-hs", "tifsstub-fs";
+					loadables = "tee", "dm", "tifsstub-hs", "tifsstub-fs",
+					"jump-stub";
 				};
 			};
 		};
@@ -290,7 +291,7 @@
 				conf-0 {
 					description = "k3-am62px-sk";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl",
+					loadables = "tee", "dm", "spl", "jump-stub",
 					"tifsstub-hs", "tifsstub-fs";
 					fdt = "fdt-0";
 				};

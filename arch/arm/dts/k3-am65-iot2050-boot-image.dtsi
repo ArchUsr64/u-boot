@@ -99,7 +99,7 @@
 				spl {
 					fdt = "fdt-0";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 				};
 			};
 		};

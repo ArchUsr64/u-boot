@@ -302,7 +302,7 @@
 					description = "k3-am62a7-phyboard-lyra-rdk";
 					firmware = "atf";
 					loadables = "tee", "dm", "spl",
-					"tifsstub-hs", "tifsstub-fs", "tifsstub-gp";
+					"tifsstub-hs", "tifsstub-fs", "tifsstub-gp", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};
@@ -483,7 +483,7 @@
 				conf-0 {
 					description = "k3-am62a7-phyboard-lyra-rdk";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl",
+					loadables = "tee", "dm", "spl", "jump-stub",
 					"tifsstub-hs", "tifsstub-fs", "tifsstub-gp";
 					fdt = "fdt-0";
 				};

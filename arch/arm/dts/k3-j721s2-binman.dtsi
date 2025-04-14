@@ -312,7 +312,7 @@
 				conf-0 {
 					description = "k3-j721s2-common-proc-board";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};
@@ -392,7 +392,7 @@
 				conf-0 {
 					description = "k3-j721s2-common-proc-board";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};

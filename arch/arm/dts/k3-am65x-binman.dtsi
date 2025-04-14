@@ -148,7 +148,7 @@
 				conf-0 {
 					description = "k3-am654-base-board";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0", "fdt-1";
 				};
 			};
@@ -257,7 +257,7 @@
 				conf-0 {
 					description = "k3-am654-base-board";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0", "fdt-1";
 				};
 			};

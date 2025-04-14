@@ -166,7 +166,7 @@
 				conf-0 {
 					description = "k3-j722s-evm";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};

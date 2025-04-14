@@ -188,7 +188,7 @@
 				conf-0 {
 					description = "k3-am625-beagleplay";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl",
+					loadables = "tee", "dm", "spl", "jump-stub",
 					"tifsstub-gp";
 					fdt = "fdt-0";
 				};

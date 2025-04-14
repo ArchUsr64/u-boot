@@ -298,7 +298,7 @@
 				conf-0 {
 					description = "k3-j721e-beagleboneai64";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};

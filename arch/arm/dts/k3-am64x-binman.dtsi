@@ -188,14 +188,14 @@
 				conf-0 {
 					description = "k3-am642-evm";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 
 				conf-1 {
 					description = "k3-am642-sk";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-1";
 				};
 			};
@@ -312,14 +312,14 @@
 				conf-0 {
 					description = "k3-am642-evm";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 
 				conf-1 {
 					description = "k3-am642-sk";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-1";
 				};
 			};

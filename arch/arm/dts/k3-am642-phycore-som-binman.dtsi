@@ -174,7 +174,7 @@
 				conf-0 {
 					description = "k3-am642-phyboard-electra-rdk";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};
@@ -253,7 +253,7 @@
 				conf-0 {
 					description = "k3-am642-phyboard-electra-rdk";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};
@@ -339,7 +339,7 @@
 				conf-0 {
 					description = "k3-am642-phyboard-electra-rdk";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};
@@ -482,7 +482,7 @@
 				conf-0 {
 					description = "k3-am642-phyboard-electra-rdk";
 					firmware = "atf";
-					loadables = "tee", "dm", "spl";
+					loadables = "tee", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};

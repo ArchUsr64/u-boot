@@ -277,7 +277,7 @@
 					description = "k3-am625-sk-falcon";
 					firmware = "atf";
 					loadables = "tee", "tifsstub-hs", "tifsstub-fs",
-					"tifsstub-gp", "dm";
+					"tifsstub-gp", "dm", "jump-stub";
 				};
 			};
 		};
@@ -362,7 +362,7 @@
 					description = "k3-am625-sk";
 					firmware = "atf";
 					loadables = "tee", "tifsstub-hs", "tifsstub-fs",
-					"tifsstub-gp", "dm", "spl";
+					"tifsstub-gp", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};
@@ -483,7 +483,7 @@
 					description = "k3-am625-sk";
 					firmware = "atf";
 					loadables = "tee", "tifsstub-hs", "tifsstub-fs",
-						  "tifsstub-gp", "dm", "spl";
+						  "tifsstub-gp", "dm", "spl", "jump-stub";
 					fdt = "fdt-0";
 				};
 			};
