@@ -64,6 +64,8 @@ Sources:
     :start-after: .. k3_rst_include_start_boot_firmwares
     :end-before: .. k3_rst_include_end_tifsstub
 
+.. _build-procedure:
+
 Build procedure:
 ----------------
 0. Setup the environment variables:
@@ -191,6 +193,93 @@ https://www.ti.com/lit/pdf/spruj16 under the `Boot Mode Pins` section.
      - 11001010
 
 For SW2 and SW1, the switch state in the "ON" position = 1.
+
+Falcon Mode
+-----------
+
+Falcon boot flow on am62a platforms bypasses the A53 SPL and u-boot with the
+overall boot flow as below:
+
+**Normal boot flow:**
+
+* R5 SPL -> ATF -> OP-TEE -> A53 SPL -> U-Boot -> Kernel
+
+**With falcon mode:**
+
+* R5 SPL -> ATF -> OP-TEE -> Kernel
+
+Build Process
+^^^^^^^^^^^^^
+
+Enabling falcon mode requires re-building ATF, U-boot and the kernel fitImage
+as follows:
+
+0. Setup environment variables:
+"""""""""""""""""""""""""""""""
+
+Refer to the :ref:`build procedure<build-procedure>` above for setting up the
+environment variables.
+
+1. Trusted Firmware-A:
+""""""""""""""""""""""
+
+.. include:: ../ti/am62x_sk.rst
+    :start-after: .. am62x_evm_falcon_start_build_process_tfa
+    :end-before: .. am62x_evm_falcon_end_build_process_tfa
+
+2. U-Boot:
+""""""""""
+
+* **2.1 R5:**
+
+.. prompt:: bash $
+
+ # use the falcon defconfig for am62a platforms
+ export UBOOT_CFG_CORTEXR=am62ax_evm_r5_falcon_defconfig
+
+.. include::  ../ti/k3.rst
+    :start-after: .. k3_rst_include_start_build_steps_spl_r5
+    :end-before: .. k3_rst_include_end_build_steps_spl_r5
+
+* **2.2 A53:**
+
+After rebuilding ATF, the binary needs to be repackaged inside the tispl
+binaries:
+
+.. include::  ../ti/k3.rst
+    :start-after: .. k3_rst_include_start_build_steps_uboot
+    :end-before: .. k3_rst_include_end_build_steps_uboot
+
+3. fitImage:
+""""""""""""
+
+.. include:: ../ti/am62x_sk.rst
+    :start-after: .. am62x_evm_falcon_start_build_process_fitimage
+    :end-before: .. am62x_evm_falcon_end_build_process_fitimage
+
+Usage
+^^^^^
+
+Falcon mode makes use of a cut down variant of the tispl binary called
+``tifalcon.bin`` with the Cortex-A SPL and it's corresponding DTBs removed.
+This file should be present alongside the existing ``tispl.bin`` after building
+U-Boot for the Cortex-A cores.
+
+- **tifalcon.bin**
+
+.. image:: img/tifsstub_dm_tifalcon.bin.svg
+  :alt: tifalcon.bin image format
+
+.. include:: ../ti/am62x_sk.rst
+    :start-after: .. am62x_evm_falcon_start_mmc_usage
+    :end-before: .. am62x_evm_falcon_end_mmc_usage
+
+R5 SPL Memory Map
+^^^^^^^^^^^^^^^^^
+
+.. include:: ../ti/am62x_sk.rst
+    :start-after: .. am62x_evm_falcon_start_r5_memory_map
+    :end-before: .. am62x_evm_falcon_end_r5_memory_map
 
 Debugging U-Boot
 ----------------

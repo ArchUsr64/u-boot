@@ -63,6 +63,8 @@ Sources:
     :start-after: .. k3_rst_include_start_boot_firmwares
     :end-before: .. k3_rst_include_end_tifsstub
 
+.. _build-procedure:
+
 Build procedure:
 ----------------
 0. Setup the environment variables:
@@ -525,6 +527,312 @@ ROM loads and executes `tiboot3.bin` provided by the TFTP server.
 Next, based on NET_VCI_STRING string mentioned in respective defconfig file `tiboot3.bin`
 fetches `tispl.bin` and then `tispl.bin` fetches `u-boot.img` from TFTP server which
 completes Ethernet boot on the device.
+
+Falcon Mode
+-----------
+
+Falcon boot flow on am62x platforms bypasses the A53 SPL and u-boot with the
+overall boot flow as below:
+
+**Normal boot flow:**
+
+* R5 SPL -> ATF -> OP-TEE -> A53 SPL -> U-Boot -> Kernel
+
+**With falcon mode:**
+
+* R5 SPL -> ATF -> OP-TEE -> Kernel
+
+Build Process
+^^^^^^^^^^^^^
+
+Enabling falcon mode requires re-building ATF, U-boot and the kernel fitImage
+as follows:
+
+0. Setup environment variables:
+"""""""""""""""""""""""""""""""
+
+Refer to the :ref:`build procedure<build-procedure>` above for setting up the
+environment variables.
+
+1. Trusted Firmware-A:
+""""""""""""""""""""""
+
+.. am62x_evm_falcon_start_build_process_tfa
+
+The R5 SPL in falcon mode loads the kernel at ``0x82000000`` and the
+corresponding DTB at ``0x88000000``. Therefore ATF needs to be rebuild with
+changes to the respective addresses.
+
+.. prompt:: bash $
+
+ # Change load addresses for the kernel and DTB
+ export TFA_EXTRA_ARGS="PRELOADED_BL33_BASE=0x82000000 K3_HW_CONFIG_BASE=0x88000000"
+
+.. include::  ../ti/k3.rst
+    :start-after: .. k3_rst_include_start_build_steps_tfa
+    :end-before: .. k3_rst_include_end_build_steps_tfa
+
+.. am62x_evm_falcon_end_build_process_tfa
+
+2. U-Boot:
+""""""""""
+
+* **2.1 R5:**
+
+.. prompt:: bash $
+
+ # use the falcon defconfig for am62x platforms
+ export UBOOT_CFG_CORTEXR=am62x_evm_r5_falcon_defconfig
+
+.. include::  ../ti/k3.rst
+    :start-after: .. k3_rst_include_start_build_steps_spl_r5
+    :end-before: .. k3_rst_include_end_build_steps_spl_r5
+
+* **2.2 A53:**
+
+After rebuilding ATF, the binary needs to be repackaged inside the tispl
+binaries:
+
+.. include::  ../ti/k3.rst
+    :start-after: .. k3_rst_include_start_build_steps_uboot
+    :end-before: .. k3_rst_include_end_build_steps_uboot
+
+3. fitImage:
+""""""""""""
+
+.. am62x_evm_falcon_start_build_process_fitimage
+
+.. warning::
+
+    The ``fitImage`` available by default under ``boot/fitImage`` in rootfs of
+    the standard SDK release is not compatible with falcon mode.
+
+For secure boot in falcon mode, the compute heavy authentication required for
+the ``fitImage`` is offloaded from the slower R5 core to TIFS. This requires
+``fitImage`` to package the necessary binaries (kernel and dtb) with a
+pre-signed x509 certificate.
+
+**fitImage for falcon mode:**
+
+.. image:: img/fitImage_falcon.svg
+  :alt: fitImage for falcon boot image format
+
+* **Sources**
+
+  * **Core Secdev K3**
+
+    | **source:** https://git.ti.com/cgit/security-development-tools/core-secdev-k3
+    | **branch:** master
+
+**Follow the steps below to create a falcon compatible fitImage:**
+
+**3.1 Environment setup**
+
+.. prompt:: bash $
+
+  export DTB=path/to/dtb
+  export IMAGE=path/to/kernel-image
+
+**3.2 fitImage creation**
+
+  An Image tree source (*its*) file describes the structure and contents of the
+  final image produced by the mkimage tool.
+
+  To create the ``fitImage`` for falcon mode, create a file ``fitImage.its``
+  with the following contents inside the ``core-secdev-k3`` source directory,:
+
+.. code-block:: dts
+
+    /dts-v1/;
+
+    / {
+        description = "Kernel fitImage for falcon mode";
+        #address-cells = <1>;
+
+        images {
+            kernel-1 {
+                description = "Linux kernel";
+                data = /incbin/("Image.sec");
+                type = "kernel";
+                arch = "arm64";
+                os = "linux";
+                compression = "none";
+                load = <0x82000000>;
+                entry = <0x82000000>;
+            };
+            falcon.dtb {
+                description = "Flattened Device Tree blob";
+                data = /incbin/("falcon.dtb.sec");
+                type = "flat_dt";
+                arch = "arm64";
+                compression = "none";
+                load = <0x88000000>;
+                entry = <0x88000000>;
+            };
+        };
+
+        configurations {
+            default = "conf-falcon";
+            conf-falcon {
+                description = "Pre-signed Kernel and DTB";
+                kernel = "kernel-1";
+                fdt = "falcon.dtb";
+            };
+        };
+    };
+
+Sign the kernel and dtb using ``secure-binary-image.sh`` and create the
+``fitImage`` using mkimage:
+
+.. prompt:: bash $
+
+  # inside core-secdev-k3 source
+  cp $IMAGE Image
+  cp $DTB falcon.dtb
+  ./scripts/secure-binary-image.sh Image Image.sec
+  ./scripts/secure-binary-image.sh falcon.dtb falcon.dtb.sec
+  mkimage -f fitImage.its fitImage
+
+.. am62x_evm_falcon_end_build_process_fitimage
+
+Usage
+^^^^^
+
+.. am62x_evm_falcon_start_usage
+
+Falcon mode makes use of a cut down variant of the tispl binary called
+``tifalcon.bin`` with the Cortex-A SPL and it's corresponding DTBs removed.
+This file should be present alongside the existing ``tispl.bin`` after building
+U-Boot for the Cortex-A cores.
+
+- **tifalcon.bin**
+
+.. image:: img/tifsstub_dm_tifalcon.bin.svg
+  :alt: tifalcon.bin image format
+
+1. eMMC/SD Boot:
+""""""""""""""""
+
+.. am62x_evm_falcon_start_mmc_usage
+
+Falcon mode for K3 devices only supports SD and eMMC in FS boot. The R5 SPL
+once loaded from the ``tiboot3.bin`` file from the boot partition looks for
+``tifalcon.bin``, the DTB and fitImage (or kernel image for unauthenticated
+boot) inside the boot directory of the second partition (rootfs).
+
+.. list-table::
+   :widths: 8 8 8 25
+   :header-rows: 1
+
+   * - File
+     - Copy path on SD/eMMC
+     - Partition
+     - Description
+
+   * - ``tiboot3.bin``
+     - ``/tiboot3.bin``
+     - boot (fat)
+     - R5 SPL with falcon support
+
+   * - ``tifalcon.bin``
+     - ``/boot/tifalcon.bin``
+     - rootfs (ext4)
+     - tispl binary without SPL for the A core and DTB
+
+   * - ``fitImage``
+     - ``/boot/fitImage``
+     - rootfs (ext4)
+     - kernel and dtb fitImage with pre-signed binaries
+
+.. am62x_evm_falcon_end_mmc_usage
+
+2. OSPI Boot:
+"""""""""""""
+
+For OSPI boot, the ``tiboot3.bin`` and ``tifalcon.bin`` files should be
+flashed to the same addresses in flash as regular boot flow but the DTB and the
+fitImage (or kernel image for unauthenticated boot) are read from the rootfs's
+boot directory.
+
+Below commands can be used to download ``tiboot3.bin`` and ``tifalcon.bin``
+over tftp and then flash those to OSPI at their respective addresses.
+
+.. prompt:: bash =>
+
+  sf probe
+  tftp ${loadaddr} tiboot3.bin
+  sf update $loadaddr 0x0 $filesize
+  tftp ${loadaddr} tifalcon.bin
+  sf update $loadaddr 0x80000 $filesize
+
+.. am62x_evm_falcon_end_usage
+
+R5 SPL Memory Map
+^^^^^^^^^^^^^^^^^
+
+.. am62x_evm_falcon_start_r5_memory_map
+
+Standard boot:
+""""""""""""""
+
+.. code-block::
+
+    0x80000000 +===============================+ Start of DDR
+      512KiB   |   ATF reserved memory space   | CONFIG_K3_ATF_LOAD_ADDR
+               |                               |
+    0x80080000 +-------------------------------+ PRELOADED_BL33_BASE in ATF
+     29.5MiB   |         A53 SPL + DTB +       | CONFIG_SPL_LOAD_FIT_ADDRESS
+               | Download region for FIT in DFU|
+    0x81e00000 +-------------------------------+
+               |  R5 U-Boot SPL Stack + Heap   |
+        2MiB   |       (size defined by        |
+               | SPL_STACK_R_MALLOC_SIMPLE_LEN)|
+    0x82000000 +-------------------------------+ CONFIG_SPL_STACK_R_ADDR
+      112MiB   |            Unused             |
+    0x89000000 +-------------------------------+
+      331MiB   | Device Manager (DM) Load Addr |
+    0x9db00000 +-------------------------------+
+       12MiB   |          DM Reserved          |
+    0x9e700000 +-------------------------------+
+        1MiB   |            Unused             |
+    0x9e800000 +-------------------------------+ BL32_BASE in ATF
+       24MiB   |             OPTEE             |
+    0xa0000000 +===============================+ End of DDR (512MiB)
+
+Falcon mode:
+""""""""""""
+
+.. code-block::
+
+    0x80000000 +===============================+ Start of DDR
+      512KiB   |   ATF reserved memory space   | CONFIG_K3_ATF_LOAD_ADDR
+    0x80080000 +-------------------------------+
+     31.5MiB   |            Unused             |
+    0x82000000 +-------------------------------+ PRELOADED_BL33_BASE in ATF
+               |                               | CONFIG_SYS_LOAD_ADDR
+       57MiB   |   Kernel + initramfs Image    | CONFIG_SPL_LOAD_FIT_ADDRESS
+               |                               |
+    0x85900000 +-------------------------------+
+               |                               |
+               |  R5 U-Boot SPL Stack + Heap   |
+       39MiB   |       (size defined by        |
+               | SPL_STACK_R_MALLOC_SIMPLE_LEN)|
+               |                               |
+    0x88000000 +-------------------------------+ CONFIG_SPL_STACK_R_ADDR
+               |                               | K3_HW_CONFIG_BASE in ATF
+       16MiB   |          Kernel DTB           | CONFIG_SPL_PAYLOAD_ARGS_ADDR
+               |                               |
+    0x89000000 +-------------------------------+
+      331MiB   | Device Manager (DM) Load Addr |
+    0x9db00000 +-------------------------------+
+       12MiB   |          DM Reserved          |
+    0x9e700000 +-------------------------------+
+        1MiB   |            Unused             |
+    0x9e800000 +-------------------------------+ BL32_BASE in ATF
+       24MiB   |             OPTEE             |
+    0xa0000000 +===============================+ End of DDR (512MiB)
+
+.. am62x_evm_falcon_end_r5_memory_map
 
 Debugging U-Boot
 ----------------
