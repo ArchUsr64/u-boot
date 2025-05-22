@@ -114,8 +114,9 @@ int fdt_del_node_path(void *blob, const char *path)
 	return ret;
 }
 
-int fdt_fixup_reserved(void *blob, const char *name,
-		       unsigned int new_address, unsigned int new_size)
+static int fdt_fixup_reserved_memory(void *blob, const char *name,
+				     unsigned int new_address,
+				     unsigned int new_size)
 {
 	int nodeoffset, subnode;
 	int ret;
@@ -160,6 +161,23 @@ add_carveout:
 	ret = fdtdec_add_reserved_memory(blob, name, &carveout, NULL, 0, NULL,
 					 FDTDEC_RESERVED_MEMORY_NO_MAP);
 	if (ret < 0)
+		return ret;
+
+	return 0;
+}
+
+int fdt_fixup_reserved(void *blob)
+{
+	int ret;
+
+	ret = fdt_fixup_reserved_memory(blob, "tfa", CONFIG_K3_ATF_LOAD_ADDR,
+					0x80000);
+	if (ret)
+		return ret;
+
+	ret = fdt_fixup_reserved_memory(blob, "optee",
+					CONFIG_K3_OPTEE_LOAD_ADDR, 0x1800000);
+	if (ret)
 		return ret;
 
 	return 0;
