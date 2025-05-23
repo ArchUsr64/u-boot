@@ -164,6 +164,10 @@ int k3_mem_map_init(void)
 	if (!carveout_len)
 		return 0;
 
+	for (i = 0; i < carveout_len; i++) {
+		debug("%d: %llx, %llx\n", i, dt_reserved_start[i], dt_reserved_end[i]);
+	}
+
 	/* sort carveout regions by address required for creating carveouts */
 	for (i = 0; i < carveout_len; i++) {
 		for (j = i; j < carveout_len; j++) {
@@ -172,6 +176,10 @@ int k3_mem_map_init(void)
 				swap(dt_reserved_end[j], dt_reserved_end[i]);
 			}
 		}
+	}
+
+	for (i = 0; i < carveout_len; i++) {
+		debug("%d: %llx, %llx\n", i, dt_reserved_start[i], dt_reserved_end[i]);
 	}
 
 	/* coalesce regions */
@@ -196,6 +204,10 @@ int k3_mem_map_init(void)
 	coalesced_start[j] = coalescing_temp_start;
 	coalesced_end[j] = coalescing_temp_end;
 	carveout_len = j + 1;
+
+	for (i = 0; i < carveout_len; i++) {
+		debug("%d: %llx, %llx\n", i, coalesced_start[i], coalesced_end[i]);
+	}
 
 	/* map reserved memory as non cachable */
 	for (i = 0; i < carveout_len; i++) {
