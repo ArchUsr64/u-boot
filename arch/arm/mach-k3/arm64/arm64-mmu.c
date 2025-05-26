@@ -209,26 +209,16 @@ int k3_mem_map_init(void)
 		debug("%d: %llx, %llx\n", i, coalesced_start[i], coalesced_end[i]);
 	}
 
-	/* map reserved memory as non cachable */
-	for (i = 0; i < carveout_len; i++) {
-		k3_mem_map[k3_map_idx].virt = coalesced_start[i];
-		k3_mem_map[k3_map_idx].phys = coalesced_start[i];
-		k3_mem_map[k3_map_idx].size = coalesced_end[i] - coalesced_start[i];
-		k3_mem_map[k3_map_idx].attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL_NC) |
+	if (coalesced_start[0] != mem_base) {
+		k3_mem_map[k3_map_idx].virt = mem_base;
+		k3_mem_map[k3_map_idx].phys = mem_base;
+		k3_mem_map[k3_map_idx].size = coalesced_start[0] - mem_base;
+		k3_mem_map[k3_map_idx].attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL) |
 					       PTE_BLOCK_INNER_SHARE;
 		k3_map_idx++;
 	}
 
-	if (dt_reserved_start[0] != mem_base) {
-		k3_mem_map[k3_map_idx].size = coalesced_start[0] - mem_base;
-		k3_map_idx++;
-	}
-
 	for (i = 1; i < carveout_len; i++) {
-		/* coalesce adjacent carveouts */
-		if (coalesced_start[i] == coalesced_end[i - 1])
-			continue;
-
 		k3_mem_map[k3_map_idx].virt = coalesced_end[i - 1];
 		k3_mem_map[k3_map_idx].phys = coalesced_end[i - 1];
 		k3_mem_map[k3_map_idx].size =
@@ -245,6 +235,17 @@ int k3_mem_map_init(void)
 	k3_mem_map[k3_map_idx].attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL) |
 				       PTE_BLOCK_INNER_SHARE;
 	k3_map_idx++;
+
+	/* map reserved memory as non cachable */
+	for (i = 0; i < carveout_len; i++) {
+		k3_mem_map[k3_map_idx].virt = coalesced_start[i];
+		k3_mem_map[k3_map_idx].phys = coalesced_start[i];
+		k3_mem_map[k3_map_idx].size = coalesced_end[i] - coalesced_start[i];
+		k3_mem_map[k3_map_idx].attrs = PTE_BLOCK_MEMTYPE(MT_NORMAL_NC) |
+					       PTE_BLOCK_INNER_SHARE;
+		k3_map_idx++;
+	}
+
 	k3_mem_map[k3_map_idx] = (const struct mm_region){ 0 };
 
 	debug("%s: MMU Table configured as:\n", __func__);
