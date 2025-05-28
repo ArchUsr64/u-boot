@@ -98,6 +98,11 @@ void spl_board_init(void)
 
 void spl_perform_fixups(struct spl_image_info *spl_image)
 {
+	u64 start[] = { CFG_SYS_SDRAM_BASE };
+	u64 size[] = { gd->ram_size };
+
+	fdt_fixup_memory_banks(spl_image->fdt_addr, start, size, 1);
+
 	if (IS_ENABLED(CONFIG_K3_DDRSS)) {
 		if (IS_ENABLED(CONFIG_K3_INLINE_ECC))
 			fixup_ddr_driver_for_ecc(spl_image);
