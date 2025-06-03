@@ -1,0 +1,11 @@
+#include <configs/am62px_evm_r5_defconfig>
+#include <configs/k3_r5_falcon.config>
+
+CONFIG_SPL_FS_LOAD_ARGS_NAME="boot/dtb/ti/k3-am62p5-sk.dtb"
+
+# Reduce SPL size
+CONFIG_LTO=y
+CONFIG_SPL_YMODEM_SUPPORT=n
+CONFIG_SPL_DRIVERS_MISC=n
+CONFIG_SPL_SYS_MMCSD_RAW_MODE=n
+CONFIG_SPL_OPTIMIZE_INLINING=y

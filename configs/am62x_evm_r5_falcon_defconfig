@@ -1,0 +1,4 @@
+#include <configs/am62x_evm_r5_defconfig>
+#include <configs/k3_r5_falcon.config>
+
+CONFIG_SPL_FS_LOAD_ARGS_NAME="boot/dtb/ti/k3-am625-sk.dtb"
