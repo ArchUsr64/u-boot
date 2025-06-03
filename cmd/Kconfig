@@ -353,6 +353,7 @@ config BOOTM_ELF
 
 config CMD_BOOTZ
 	bool "bootz"
+	depends on !TI_SECURE_DEVICE_K3
 	help
 	  Boot the Linux zImage
 
