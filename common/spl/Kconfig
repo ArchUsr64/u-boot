@@ -1196,6 +1196,14 @@ config SPL_OS_BOOT
 	  Enable booting directly to an OS from SPL.
 	  for more info read doc/README.falcon
 
+config SPL_FALCON_ALLOW_FALLBACK
+	bool "Allow fallback to regular boot if falcon mode fails"
+	depends on SPL_OS_BOOT && SYS_MMCSD_FS_BOOT
+	default y
+	help
+	  Enable support to fallback on default boot if falcon boot fails in
+	  MMC FS boot.
+
 config SPL_PAYLOAD_ARGS_ADDR
 	hex "Address in memory to load 'args' file for Falcon Mode to"
 	depends on SPL_OS_BOOT || SPL_LOAD_FIT_OPENSBI_OS_BOOT
