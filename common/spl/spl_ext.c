@@ -96,7 +96,8 @@ int spl_load_image_ext_os(struct spl_image_info *spl_image,
 		return err;
 	}
 
-	if (!CONFIG_IS_ENABLED(ENV_SUPPORT)) {
+	if (!CONFIG_IS_ENABLED(ENV_SUPPORT) ||
+	    CONFIG_IS_ENABLED(OS_BOOT_SECURE)) {
 		goto defaults;
 	}
 
