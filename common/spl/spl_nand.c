@@ -102,6 +102,7 @@ static int spl_nand_load_image_os(struct spl_image_info *spl_image,
 	if (err)
 		return err;
 
+#ifdef CONFIG_SPL_PAYLOAD_ARGS_ADDR
 	/*
 	 * load parameter image load to temp position since nand_spl_load_image
 	 * reads a whole block which is typically larger than
@@ -117,6 +118,7 @@ static int spl_nand_load_image_os(struct spl_image_info *spl_image,
 	     src++, dst++) {
 		writel(readl(src), dst);
 	}
+#endif
 
 	return 0;
 }
