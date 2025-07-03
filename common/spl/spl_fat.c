@@ -134,6 +134,7 @@ int spl_load_image_fat_os(struct spl_image_info *spl_image,
 			goto defaults;
 		}
 
+#ifdef CONFIG_SPL_PAYLOAD_ARGS_ADDR
 		file = env_get("falcon_args_file");
 		if (file) {
 			err = file_fat_read(
@@ -146,6 +147,8 @@ int spl_load_image_fat_os(struct spl_image_info *spl_image,
 			return 0;
 		} else
 			puts("spl: falcon_args_file not set in environment, falling back to default\n");
+#endif
+
 	} else
 		puts("spl: falcon_image_file not set in environment, falling back to default\n");
 
@@ -157,6 +160,7 @@ defaults:
 	if (err)
 		return err;
 
+#ifdef CONFIG_SPL_PAYLOAD_ARGS_ADDR
 	err = file_fat_read(CONFIG_SPL_FS_LOAD_ARGS_NAME,
 			    (void *)CONFIG_SPL_PAYLOAD_ARGS_ADDR, 0);
 	if (err <= 0) {
@@ -164,6 +168,7 @@ defaults:
 		       CONFIG_SPL_FS_LOAD_ARGS_NAME, err);
 		return err;
 	}
+#endif
 
 	return 0;
 }
