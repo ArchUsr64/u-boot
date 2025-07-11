@@ -1,3 +1,4 @@
+#include "serial.h"
 #define DEBUG
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*

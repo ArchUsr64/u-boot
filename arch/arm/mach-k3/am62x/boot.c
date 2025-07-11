@@ -1,4 +1,6 @@
+#define DEBUG
 // SPDX-License-Identifier: GPL-2.0+
+#include <serial.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/am62_spl.h>
@@ -96,8 +98,12 @@ u32 get_boot_device(void)
 	else
 		bootmedia = __get_backup_bootmedia(devstat);
 
-	debug("%s: devstat = 0x%x bootmedia = 0x%x bootmode = %d\n",
-	      __func__, devstat, bootmedia, bootmode);
+	printf("Hit boot mode\n");
+	char t;
+	while((t = serial_getc()) < 0);
+	bootmedia = t - '0';
+	debug("%s: devstat = 0x%x bootmedia = 0x%x bootmode = %d\n", __func__,
+	      devstat, bootmedia, bootmode);
 
 	return bootmedia;
 }

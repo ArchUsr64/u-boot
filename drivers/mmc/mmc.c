@@ -7,6 +7,7 @@
  * Based vaguely on the Linux code
  */
 
+#include "spl.h"
 #include <config.h>
 #include <blk.h>
 #include <command.h>

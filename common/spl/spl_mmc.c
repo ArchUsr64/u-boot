@@ -1,3 +1,4 @@
+#include "linux/compiler_attributes.h"
 #define DEBUG
 // SPDX-License-Identifier: GPL-2.0+
 /*
@@ -271,7 +272,7 @@ static int spl_mmc_do_fs_boot(struct spl_image_info *spl_image,
 					 mmc_get_blk_desc(mmc), partition);
 		if (!ret)
 			return 0;
-		printf("%s, Failed to load falcon payload: %d\n", __func__,
+		printf("%s: Failed to load falcon payload: %d\n", __func__,
 		       ret);
 		if (CONFIG_IS_ENABLED(OS_BOOT_SECURE))
 			return ret;
@@ -416,7 +417,7 @@ int spl_mmc_load(struct spl_image_info *spl_image,
 			if (!ret)
 				return 0;
 			if (CONFIG_IS_ENABLED(OS_BOOT_SECURE))
-				return ret;
+				fallthrough;
 		}
 
 		raw_sect = spl_mmc_get_uboot_raw_sector(mmc, raw_sect);

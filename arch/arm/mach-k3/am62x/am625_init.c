@@ -14,6 +14,7 @@
 #include <dm/uclass-internal.h>
 #include <dm/pinctrl.h>
 #include <dm/ofnode.h>
+#include <serial.h>
 
 #include "../sysfw-loader.h"
 #include "../common.h"
@@ -293,7 +294,7 @@ void board_init_f(ulong dummy)
 		if (ret)
 			panic("DRAM init failed: %d\n", ret);
 	}
-	spl_enable_cache();
+	// spl_enable_cache();
 
 	if (IS_ENABLED(CONFIG_SPL_ETH) && IS_ENABLED(CONFIG_TI_AM65_CPSW_NUSS) &&
 	    spl_boot_device() == BOOT_DEVICE_ETHERNET) {
@@ -315,6 +316,12 @@ u32 spl_mmc_boot_mode(struct mmc *mmc, const u32 boot_device)
 	u32 bootmode_cfg = (devstat & MAIN_DEVSTAT_PRIMARY_BOOTMODE_CFG_MASK) >>
 			    MAIN_DEVSTAT_PRIMARY_BOOTMODE_CFG_SHIFT;
 
+	printf("MMC Boot mode\n");
+	char t;
+	while((t = serial_getc()) < 0);
+	printf("Entered: %c\n", t);
+	return t - '0';
+
 	switch (bootmode) {
 	case BOOT_DEVICE_EMMC:
 		if (IS_ENABLED(CONFIG_SUPPORT_EMMC_BOOT))
@@ -334,3 +341,10 @@ u32 spl_boot_device(void)
 {
 	return get_boot_device();
 }
+
+#ifdef CONFIG_ARM64
+int spl_start_uboot() {
+	serial_flush();
+	return (serial_tstc() && serial_getc() == ' ');
+}
+#endif

@@ -251,7 +251,7 @@ __weak void spl_board_prepare_for_boot(void)
 
 __weak struct legacy_img_hdr *spl_get_load_buffer(ssize_t offset, size_t size)
 {
-	return map_sysmem(CONFIG_TEXT_BASE + offset, 0);
+	return map_sysmem(0x82000000, 0);
 }
 
 void spl_set_header_raw_uboot(struct spl_image_info *spl_image)
@@ -683,6 +683,7 @@ void board_init_f(ulong dummy)
 
 void board_init_r(gd_t *dummy1, ulong dummy2)
 {
+	while(!serial_getc());
 	u32 spl_boot_list[] = {
 		BOOT_DEVICE_NONE,
 		BOOT_DEVICE_NONE,
@@ -794,8 +795,11 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 		jumper = &spl_invoke_opensbi;
 	} else if (CONFIG_IS_ENABLED(OS_BOOT) && os == IH_OS_LINUX) {
 		debug("Jumping to Linux\n");
-		if (IS_ENABLED(CONFIG_SPL_OS_BOOT))
-			spl_fixup_fdt((void *)SPL_PAYLOAD_ARGS_ADDR);
+		if (CONFIG_IS_ENABLED(OS_BOOT)) {
+			spl_fixup_fdt(spl_image_fdt_addr(&spl_image));
+			if (!spl_image.arg)
+				spl_image.arg = spl_image_fdt_addr(&spl_image);
+		}
 		spl_board_prepare_for_linux();
 		jumper = &jump_to_image_linux;
 	} else {

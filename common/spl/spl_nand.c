@@ -143,7 +143,7 @@ static int spl_nand_load_image(struct spl_image_info *spl_image,
 			return 0;
 		printf("%s: Failed in falcon boot: %d", __func__, err);
 		if (CONFIG_IS_ENABLED(OS_BOOT_SECURE))
-			return ret;
+			return err;
 		printf("Fallback to U-Boot\n");
 	}
 #endif

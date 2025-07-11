@@ -97,8 +97,14 @@ void spl_board_init(void)
 
 }
 
+int k3_falcon_fdt_fixup(void *fdt);
+
 void spl_perform_fixups(struct spl_image_info *spl_image)
 {
+	int ret = k3_falcon_fdt_fixup((void*)0x88000000);
+	if (ret) {
+		printf("Fdt fixup failed: %d\n", ret);
+	}
 	if (IS_ENABLED(CONFIG_K3_DDRSS)) {
 		if (IS_ENABLED(CONFIG_K3_INLINE_ECC))
 			fixup_ddr_driver_for_ecc(spl_image);

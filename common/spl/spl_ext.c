@@ -110,6 +110,8 @@ int spl_load_image_ext_os(struct spl_image_info *spl_image,
 			goto defaults;
 		}
 #ifdef CONFIG_SPL_PAYLOAD_ARGS_ADDR
+		ext4fs_set_blk_dev(block_dev, &part_info);
+		ext4fs_mount();
 		file = env_get("falcon_args_file");
 		if (file) {
 			err = ext4fs_open(file, &filelen);
@@ -142,9 +144,12 @@ defaults:
 		return err;
 
 #ifdef CONFIG_SPL_PAYLOAD_ARGS_ADDR
+	ext4fs_set_blk_dev(block_dev, &part_info);
+	ext4fs_mount();
+	printf("Ext4 mounting: %d\n", err);
 	err = ext4fs_open(CONFIG_SPL_FS_LOAD_ARGS_NAME, &filelen);
 	if (err < 0) {
-		puts("spl: ext4fs_open failed\n");
+		puts("spl: ext4fs_open failed on args\n");
 		return err;
 	}
 

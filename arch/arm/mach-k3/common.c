@@ -304,17 +304,7 @@ static __maybe_unused void k3_dma_remove(void)
 		pr_warn("DMA Device not found (err=%d)\n", rc);
 }
 
-#if IS_ENABLED(CONFIG_SPL_OS_BOOT) && !IS_ENABLED(CONFIG_ARM64)
-static bool tifalcon_loaded;
-
-int spl_start_uboot(void)
-{
-	if (!tifalcon_loaded)
-		return 1;
-	return 0;
-}
-
-static int k3_falcon_fdt_fixup(void *fdt)
+int k3_falcon_fdt_fixup(void *fdt)
 {
 	struct disk_partition info;
 	struct blk_desc *dev_desc;
@@ -340,7 +330,7 @@ static int k3_falcon_fdt_fixup(void *fdt)
 	if (ret) {
 		printf("%s: Could not set bootargs: %s\n", __func__,
 		       fdt_strerror(ret));
-		return ret;
+		// return ret;
 	}
 	debug("Set bootargs to: %s\n", str);
 
@@ -362,6 +352,16 @@ static int k3_falcon_fdt_fixup(void *fdt)
 		}
 	}
 
+	return 0;
+}
+
+#if IS_ENABLED(CONFIG_SPL_OS_BOOT) && !IS_ENABLED(CONFIG_ARM64)
+static bool tifalcon_loaded;
+
+int spl_start_uboot(void)
+{
+	if (!tifalcon_loaded)
+		return 1;
 	return 0;
 }
 
@@ -399,7 +399,8 @@ static int k3_falcon_prep(void)
 
 			fdt = spl_image_fdt_addr(&kernel_image);
 			if (!fdt)
-				fdt = (void *)CONFIG_SPL_PAYLOAD_ARGS_ADDR;
+			/* TODO: Ideally this should not be hit */
+				fdt = (void *)0x88000000;
 			ret = k3_falcon_fdt_fixup(fdt);
 			if (ret) {
 				printf("%s: Failed performing fdt fixups in falcon flow: [%d]\n",

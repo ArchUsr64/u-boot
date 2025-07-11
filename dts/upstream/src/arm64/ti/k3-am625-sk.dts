@@ -31,7 +31,6 @@
 
 	vmain_pd: regulator-0 {
 		/* TPS65988 PD CONTROLLER OUTPUT */
-		bootph-all;
 		compatible = "regulator-fixed";
 		regulator-name = "vmain_pd";
 		regulator-min-microvolt = <5000000>;
@@ -42,7 +41,6 @@
 
 	vcc_5v0: regulator-1 {
 		/* Output of LM34936 */
-		bootph-all;
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_5v0";
 		regulator-min-microvolt = <5000000>;
@@ -54,7 +52,6 @@
 
 	vcc_3v3_sys: regulator-2 {
 		/* output of LM61460-Q1 */
-		bootph-all;
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_3v3_sys";
 		regulator-min-microvolt = <3300000>;
@@ -66,7 +63,6 @@
 
 	vdd_mmc1: regulator-3 {
 		/* TPS22918DBVR */
-		bootph-all;
 		compatible = "regulator-fixed";
 		regulator-name = "vdd_mmc1";
 		regulator-min-microvolt = <3300000>;
@@ -79,7 +75,6 @@
 
 	vdd_sd_dv: regulator-4 {
 		/* Output of TLV71033 */
-		bootph-all;
 		compatible = "regulator-gpio";
 		regulator-name = "tlv71033";
 		pinctrl-names = "default";
