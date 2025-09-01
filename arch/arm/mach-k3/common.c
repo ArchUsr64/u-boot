@@ -1,3 +1,4 @@
+#define DEBUG
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * K3: Common Architecture initialization
@@ -52,6 +53,10 @@ struct ti_sci_handle *get_ti_sci_handle(void)
 		panic("Failed to get SYSFW (%d)\n", ret);
 
 	return (struct ti_sci_handle *)ti_sci_get_handle_from_sysfw(dev);
+}
+
+void __weak arch_dump_mem_attrs(void)
+{
 }
 
 void k3_sysfw_print_ver(void)
@@ -301,6 +306,10 @@ void enable_caches(void)
 
 	icache_enable();
 	dcache_enable();
+
+#ifdef DEBUG
+		arch_dump_mem_attrs();
+#endif
 }
 #endif
 
