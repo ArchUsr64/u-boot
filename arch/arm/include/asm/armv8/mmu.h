@@ -206,6 +206,15 @@ void setup_pgtables(void);
  * @len: The size of mem_map
  */
 int mem_map_fix_dram_banks(unsigned int index, unsigned int len, u64 attrs);
+
+/**
+ * mmu_unmap_reserved_mem() - Unmaps a reserved-memory node as PTE_TYPE_FAULT
+ * once MMU is configured by mmu_setup.
+ *
+ * @name: The name of the node under "/reserved-memory/" path
+ */
+int mmu_unmap_reserved_mem(const char *name);
+
 u64 get_tcr(u64 *pips, u64 *pva_bits);
 
 /**
