@@ -426,3 +426,8 @@ release_proc_ctrl:
 	proc_ops->proc_release(ti_sci, PROC_ID_MCU_R5FSS0_CORE1);
 	return ret;
 }
+
+int spl_start_uboot(void)
+{
+	return 0;
+}

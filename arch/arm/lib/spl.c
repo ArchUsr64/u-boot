@@ -1,3 +1,4 @@
+#define DEBUG
 // SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2010-2012
@@ -53,6 +54,8 @@ void __weak board_init_f(ulong dummy)
 #ifdef CONFIG_ARM64
 void __noreturn jump_to_image_linux(struct spl_image_info *spl_image)
 {
+	if (!spl_image->arg)
+		spl_image->arg = spl_image_fdt_addr(spl_image);
 	debug("Entering kernel arg pointer: 0x%p\n", spl_image->arg);
 	cleanup_before_linux();
 	armv8_switch_to_el2((u64)spl_image->arg, 0, 0, 0,
