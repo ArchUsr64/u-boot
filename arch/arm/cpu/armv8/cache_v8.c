@@ -1184,11 +1184,6 @@ int icache_status(void)
 	return (get_sctlr() & CR_I) != 0;
 }
 
-int mmu_status(void)
-{
-	return (get_sctlr() & CR_M) != 0;
-}
-
 void invalidate_icache_all(void)
 {
 	__asm_invalidate_icache_all();
@@ -1210,16 +1205,16 @@ int icache_status(void)
 	return 0;
 }
 
-int mmu_status(void)
-{
-	return 0;
-}
-
 void invalidate_icache_all(void)
 {
 }
 
 #endif	/* !CONFIG_IS_ENABLED(SYS_ICACHE_OFF) */
+
+int mmu_status(void)
+{
+	return (get_sctlr() & CR_M) != 0;
+}
 
 /*
  * Enable dCache & iCache, whether cache is actually enabled
