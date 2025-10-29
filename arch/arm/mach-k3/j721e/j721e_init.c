@@ -40,12 +40,6 @@
 #define NB_THREADMAP_BIT0				BIT(0)
 #define NB_THREADMAP_BIT1				BIT(1)
 
-/* TISCI DEV ID for A72, MSMC Clock */
-#define DEV_A72SS0_CORE0_0_ID 202
-#define DEV_A72SS0_CORE0_0_ARM_CLK_CLK_ID 2
-#define DEV_A72SS0_CORE0_ID 4
-#define DEV_A72SS0_CORE0_MSMC_CLK_ID 1
-
 #ifdef CONFIG_K3_LOAD_SYSFW
 struct fwl_data cbass_hc_cfg0_fwls[] = {
 #if defined(CONFIG_SOC_K3_J721E)
@@ -155,74 +149,22 @@ static void setup_navss_nb(void)
 }
 
 #if defined(CONFIG_CPU_V7R) && defined(CONFIG_K3_AVS0)
-static int get_clock_index_by_dev_id(ofnode node, u32 dev_id, u32 clk_id)
+char k3_get_speed_grade(void)
 {
-	ofnode clknode;
-	int count, i;
-	struct ofnode_phandle_args phandle_args;
-
-	clknode = ofnode_by_compatible(ofnode_null(), "ti,k2g-sci-clk");
-	if (!ofnode_valid(clknode)) {
-		printf("%s: clock-controller not found\n", __func__);
-		return -ENODEV;
-	}
-
-	count = ofnode_count_phandle_with_args(node,  "assigned-clocks", "#clock-cells", 0);
-	for (i = 0; i < count; i++) {
-		if (ofnode_parse_phandle_with_args(node, "assigned-clocks",
-						   "#clock-cells", 0, i, &phandle_args)) {
-			printf("%s: Could not parse assigned-clocks at index %d\n", __func__, i);
-			continue;
-		}
-		if (ofnode_equal(clknode, phandle_args.node) &&
-		    phandle_args.args[0] == dev_id && phandle_args.args[1] == clk_id)
-			return i;
-	}
-	return -1;
+	/* SoC speed grade is not discoverable on this device */
+	return K3_SPEED_GRADE_UNKNOWN;
 }
 
-static int fdt_fixup_a72ss_clock_frequency(void)
+u32 k3_get_msmc_frequency(char speed_grade)
 {
-	int index, size;
-	u32 *rates;
-	ofnode node;
+	/* OPP_LOW clock for MSMC: See Table 7-2 of the DRA821u datasheet */
+	return 500000000;
+}
 
-	node = ofnode_by_compatible(ofnode_null(), "ti,am654-rproc");
-	if (!ofnode_valid(node)) {
-		printf("%s: A72 not found\n", __func__);
-		return -ENODEV;
-	}
-
-	rates = fdt_getprop_w(ofnode_to_fdt(node), ofnode_to_offset(node),
-			      "assigned-clock-rates", &size);
-	if (!rates) {
-		printf("%s: Wrong A72 assigned-clocks-rates configuration\n", __func__);
-		return -1;
-	}
-
-	/* Update A72 Clock Frequency to OPP_LOW spec */
-	index = get_clock_index_by_dev_id(node,
-					  DEV_A72SS0_CORE0_0_ID,
-					  DEV_A72SS0_CORE0_0_ARM_CLK_CLK_ID);
-	if (index < 0 || index >= (size / sizeof(u32))) {
-		printf("%s: Wrong A72 assigned-clocks configuration\n", __func__);
-		return -1;
-	}
-	rates[index] = cpu_to_fdt32(1000000000);
-	printf("Changed A72 CPU frequency to %dHz in DT\n", 1000000000);
-
-	/* Update MSMC Clock Frequency to OPP_LOW spec */
-	index = get_clock_index_by_dev_id(node,
-					  DEV_A72SS0_CORE0_ID,
-					  DEV_A72SS0_CORE0_MSMC_CLK_ID);
-	if (index < 0 || index >= (size / sizeof(u32))) {
-		printf("%s: Wrong A72 assigned-clocks configuration\n", __func__);
-		return -1;
-	}
-	rates[index] = cpu_to_fdt32(500000000);
-	printf("Changed MSMC frequency to %dHz in DT\n", 500000000);
-
-	return 0;
+u32 k3_get_a_core_frequency(char speed_grade)
+{
+	/* OPP_LOW clock for A72: See Table 7-2 of the DRA821u datasheet */
+	return 1000000000;
 }
 #endif
 
@@ -398,10 +340,7 @@ void board_init_f(ulong dummy)
 		if (ret) {
 			printf("OPP_LOW: k3_avs_check_opp failed: %d\n", ret);
 		} else {
-			ret = fdt_fixup_a72ss_clock_frequency();
-			if (ret)
-				printf("OPP_LOW: fdt_fixup_a72ss_clock_frequency failed: %d\n",
-				       ret);
+			k3_fix_rproc_clock("/a72@0");
 		}
 	}
 #endif

@@ -304,6 +304,78 @@ void enable_caches(void)
 }
 #endif
 
+__weak char k3_get_speed_grade(void)
+{
+	return K3_SPEED_GRADE_UNKNOWN;
+}
+
+__weak u32 k3_get_msmc_frequency(char speed_grade)
+{
+	return 0;
+}
+
+__weak const struct k3_speed_grade_map *k3_get_speed_grade_map(void)
+{
+	return NULL;
+}
+
+__weak u32 k3_get_a_core_frequency(char speed_grade)
+{
+	const struct k3_speed_grade_map *map = k3_get_speed_grade_map();
+	unsigned int i;
+
+	if (!map)
+		return 0;
+
+	for (i = 0; map[i].speed_grade != 0; i++) {
+		if (map[i].speed_grade == speed_grade)
+			return map[i].a_core_frequency;
+	}
+
+	return 0;
+}
+
+void k3_fix_rproc_clock(const char *path)
+{
+	if (IS_ENABLED(CONFIG_ARM64))
+		return;
+
+	char speed_grade = k3_get_speed_grade();
+	void *fdt = (void *)gd->fdt_blob;
+	u32 cpu_frequency, msmc_frequency;
+	int nodeoffset;
+
+	cpu_frequency = k3_get_a_core_frequency(speed_grade);
+	msmc_frequency = k3_get_msmc_frequency(speed_grade);
+
+	if (!cpu_frequency) {
+		printf("%s: Failed to get speed grade frequency\n", __func__);
+		return;
+	}
+
+	nodeoffset = fdt_path_offset(fdt, path);
+
+	if (nodeoffset < 0) {
+		printf("%s: FDT error looking for node '%s' (%s)\n", __func__,
+		       path, fdt_strerror(nodeoffset));
+		return;
+	}
+
+	fdt_set_assigned_clock_rate(fdt, nodeoffset, "core", cpu_frequency);
+
+	if (msmc_frequency)
+		fdt_set_assigned_clock_rate(fdt, nodeoffset, "msmc",
+					    msmc_frequency);
+
+	printf("Set clock rates for '%s',", path);
+	printf(" CPU: %dMHz", cpu_frequency / 1000000);
+	if (msmc_frequency)
+		printf(", MSMC: %dMHz", msmc_frequency / 1000000);
+	if (speed_grade != K3_SPEED_GRADE_UNKNOWN)
+		printf(" at Speed Grade: '%c'", speed_grade);
+	puts("\n");
+}
+
 void spl_enable_cache(void)
 {
 #if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
