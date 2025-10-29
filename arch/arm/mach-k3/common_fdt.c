@@ -167,6 +167,33 @@ add_carveout:
 	return 0;
 }
 
+int fdt_set_assigned_clock_rate(void *blob, int nodeoffset,
+				const char *clock_name, unsigned int new_clock)
+{
+	u32 *clock_rates;
+	int size, index;
+
+	clock_rates =
+		fdt_getprop_w(blob, nodeoffset, "assigned-clock-rates", &size);
+
+	index = fdt_stringlist_search(blob, nodeoffset, "clock-names",
+				      clock_name);
+	if (index < 0) {
+		printf("%s: FDT error looking for clock-name '%s' (%s)\n",
+		       __func__, clock_name, fdt_strerror(index));
+		return index;
+	}
+
+	if (index > (size / sizeof(u32))) {
+		printf("%s: ERROR: Invalid index for clock-name '%s'\n",
+		       __func__, clock_name);
+		return -EINVAL;
+	}
+
+	clock_rates[index] = cpu_to_fdt32(new_clock);
+	return 0;
+}
+
 static int fdt_fixup_critical_trips(void *blob, int zoneoffset, int maxc)
 {
 	int node, trip;
