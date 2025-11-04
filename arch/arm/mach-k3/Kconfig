@@ -155,6 +155,7 @@ config K3_X509_SWRV
 	  SWRV for X509 certificate used for boot images
 
 config NR_DRAM_BANKS
+	default 1 if (SOC_K3_AM625 || SOC_K3_AM642)
 	default 2
 
 config K3_REMOTEPROC_R5F
