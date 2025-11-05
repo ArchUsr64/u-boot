@@ -830,6 +830,7 @@ config ARCH_K3
 	bool "Texas Instruments' K3 Architecture"
 	select SPL
 	select SUPPORT_SPL
+	select SPL_USE_TINY_PRINTF_POINTER_SUPPORT
 	select FIT
 	select REGEX
 	select FIT_SIGNATURE if ARM64
