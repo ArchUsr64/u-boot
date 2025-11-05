@@ -12,7 +12,7 @@
 
 / {
 	aliases {
-		remoteproc0 = &sysctrler;
+		remoteproc0 = &dmsc;
 		remoteproc1 = &a53_0;
 	};
 
@@ -67,12 +67,13 @@
 };
 
 &dmsc {
-	mboxes= <&secure_proxy_main 0>,
-		<&secure_proxy_main 1>,
-		<&secure_proxy_main 0>;
-	mbox-names = "rx", "tx", "notify";
+	mboxes= <&secure_proxy_main 0>, <&secure_proxy_main 1>,
+		<&secure_proxy_main 0>, <&secure_proxy_main 1>,
+		<&secure_proxy_main 0>, <&sa3_secproxy 0>;
+	mbox-names = "rx", "tx", "notify", "boot_tx", "boot_rx", "boot_notify";
 	ti,host-id = <35>;
 	ti,secure-host;
+	bootph-pre-ram;
 };
 
 &main_timer0 {
