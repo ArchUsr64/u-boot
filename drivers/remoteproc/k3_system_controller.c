@@ -90,6 +90,12 @@ struct k3_sysctrler_privdata {
 	bool has_boot_notify;
 };
 
+static const struct k3_sysctrler_desc k3_sysctrler_am654_desc = {
+	.host_id = 4,				/* HOST_ID_R5_1 */
+	.max_rx_timeout_us = 800000,
+	.max_msg_size = 60,
+};
+
 static inline
 void k3_sysctrler_load_msg_setup(struct k3_sysctrler_load_msg *fw,
 				 struct k3_sysctrler_privdata *priv,
@@ -262,14 +268,14 @@ static int k3_of_to_priv(struct udevice *dev,
 {
 	int ret;
 
-	ret = mbox_get_by_name(dev, "tx", &priv->chan_tx);
+	ret = mbox_get_by_name(dev, "boot_tx", &priv->chan_tx);
 	if (ret) {
 		dev_err(dev, "%s: Acquiring Tx channel failed. ret = %d\n",
 			__func__, ret);
 		return ret;
 	}
 
-	ret = mbox_get_by_name(dev, "rx", &priv->chan_rx);
+	ret = mbox_get_by_name(dev, "boot_rx", &priv->chan_rx);
 	if (ret) {
 		dev_err(dev, "%s: Acquiring Rx channel failed. ret = %d\n",
 			__func__, ret);
@@ -313,29 +319,14 @@ static int k3_sysctrler_probe(struct udevice *dev)
 		return ret;
 	}
 
-	priv->desc = (void *)dev_get_driver_data(dev);
+	priv->desc = (void *)&k3_sysctrler_am654_desc;
 	priv->seq_nr = 0;
 
 	return 0;
 }
 
-static const struct k3_sysctrler_desc k3_sysctrler_am654_desc = {
-	.host_id = 4,				/* HOST_ID_R5_1 */
-	.max_rx_timeout_us = 800000,
-	.max_msg_size = 60,
-};
-
-static const struct udevice_id k3_sysctrler_ids[] = {
-	{
-		.compatible = "ti,am654-tisci-rproc-r5",
-		.data = (ulong)&k3_sysctrler_am654_desc,
-	},
-	{}
-};
-
 U_BOOT_DRIVER(k3_sysctrler) = {
 	.name = "k3_system_controller",
-	.of_match = k3_sysctrler_ids,
 	.id = UCLASS_REMOTEPROC,
 	.ops = &k3_sysctrler_ops,
 	.probe = k3_sysctrler_probe,

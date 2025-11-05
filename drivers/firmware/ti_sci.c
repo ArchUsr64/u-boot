@@ -2958,6 +2958,27 @@ static int ti_sci_probe(struct udevice *dev)
 	}
 
 	return 0;
+
+}
+
+static int ti_sci_bind(struct udevice *dev)
+{
+	struct udevice *child;
+	int ret;
+
+	if (CONFIG_IS_ENABLED(REMOTEPROC) &&
+	    IS_ENABLED(CONFIG_K3_SYSTEM_CONTROLLER)) {
+		debug("%s(dev=%p, name=%s)\n", __func__, dev, dev->name);
+		ret = device_bind_driver_to_node(dev, "k3_system_controller",
+						 "sysctrler", dev_ofnode(dev),
+						 &child);
+		if (ret) {
+			dev_warn(dev, "Failed to bind SYSCON: %d\n", ret);
+			return ret;
+		}
+	}
+
+	return 0;
 }
 
 /**
@@ -3214,6 +3235,7 @@ U_BOOT_DRIVER(ti_sci) = {
 	.id = UCLASS_FIRMWARE,
 	.of_match = ti_sci_ids,
 	.probe = ti_sci_probe,
+	.bind = ti_sci_bind,
 	.priv_auto	= sizeof(struct ti_sci_info),
 	.flags = DM_FLAG_PRE_RELOC,
 };
