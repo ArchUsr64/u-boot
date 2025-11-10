@@ -61,15 +61,6 @@
 	status = "okay";
 };
 
-&cbass_mcu_wakeup {
-	sysctrler: sysctrler {
-		compatible = "ti,am654-tisci-rproc-r5";
-		mboxes= <&secure_proxy_mcu 4>, <&secure_proxy_mcu 5>, <&secure_proxy_sa3 5>;
-		mbox-names = "tx", "rx", "boot_notify";
-		bootph-pre-ram;
-	};
-};
-
 &sms {
 	mboxes = <&secure_proxy_mcu 8>, <&secure_proxy_mcu 6>,
 		<&secure_proxy_mcu 5>, <&secure_proxy_mcu 4>,

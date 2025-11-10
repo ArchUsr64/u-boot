@@ -68,15 +68,6 @@
 		reg-names = "rt", "scfg", "target_data";
 		bootph-all;
 	};
-
-	sysctrler: sysctrler {
-		compatible = "ti,am654-tisci-rproc-r5";
-		mboxes= <&secure_proxy_main 1>,
-			<&secure_proxy_main 0>,
-			<&sa3_secproxy 0>;
-		mbox-names = "tx", "rx", "boot_notify";
-		bootph-all;
-	};
 };
 
 &main_timer0 {
