@@ -165,7 +165,7 @@ static struct ti_fdt_map ti_am64_evm_fdt_map[] = {
 
 static void setup_board_eeprom_env(void)
 {
-	char *name = "am64x_gpevm";
+	char *name = NULL;
 
 	if (do_board_detect())
 		goto invalid_eeprom;
@@ -179,6 +179,8 @@ static void setup_board_eeprom_env(void)
 		       board_ti_get_name());
 
 invalid_eeprom:
+	if (!name)
+		return;
 	set_board_info_env_am6(name);
 	ti_set_fdt_env(name, ti_am64_evm_fdt_map);
 }
