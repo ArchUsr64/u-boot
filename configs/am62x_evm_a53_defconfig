@@ -161,6 +161,7 @@ CONFIG_FS_FAT_MAX_CLUSTSIZE=16384
 CONFIG_EFI_SET_TIME=y
 CONFIG_SPL_GZIP=y
 
+#include <configs/k3_bootcount.config>
 #include <configs/k3_efi_capsule.config>
 #include <configs/am62x_a53_usbdfu.config>
 #include <configs/am62x_a53_splashscreen.config>

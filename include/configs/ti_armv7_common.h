@@ -202,6 +202,14 @@
 
 #endif /* CONFIG_DISTRO_DEFAULTS */
 
+#ifdef CONFIG_BOOTCOUNT_LIMIT
+
+/* bootpart in env is used to detect rootfs in A/B update partitioning */
+#define CONFIG_ENV_FLAGS_LIST_DEFAULT "bootpart:sw,bootcount:dw,upgrade_available:dw"
+#define CFG_ENV_FLAGS_LIST_STATIC  "bootpart:sw,bootcount:dw,upgrade_available:dw"
+
+#endif
+
 #endif /* CONFIG_ARM64 */
 
 #endif	/* __CONFIG_TI_ARMV7_COMMON_H__ */

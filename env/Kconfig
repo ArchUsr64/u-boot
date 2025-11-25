@@ -607,6 +607,7 @@ config ENV_SIZE
 	default 0x2000 if ARCH_ROCKCHIP && ENV_IS_IN_SPI_FLASH
 	default 0x8000 if ARCH_ZYNQMP || ARCH_VERSAL || ARCH_VERSAL_NET || ARCH_VERSAL2
 	default 0x4000 if ARC
+	default 0x20000 if ARCH_K3
 	default 0x1f000
 	help
 	  Size of the environment storage area
