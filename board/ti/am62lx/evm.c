@@ -12,6 +12,7 @@
 #include <env.h>
 #include <fdt_support.h>
 #include <spl.h>
+#include <serial.h>
 
 #include "../common/fdt_ops.h"
 
@@ -19,6 +20,15 @@ int board_init(void)
 {
 	return 0;
 }
+
+#if IS_ENABLED(CONFIG_SPL_OS_BOOT)
+int spl_start_uboot(void)
+{
+	printf("SPL: booting kernel\n");
+	/* break into full u-boot on ' ' */
+	return serial_tstc() && serial_getc() == ' ';
+}
+#endif
 
 #if IS_ENABLED(CONFIG_BOARD_LATE_INIT)
 int board_late_init(void)
