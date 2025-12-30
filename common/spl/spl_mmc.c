@@ -266,11 +266,13 @@ static int spl_mmc_do_fs_boot(struct spl_image_info *spl_image,
 	if (!spl_start_uboot()) {
 		ret = spl_mmc_fs_load_os(spl_image, bootdev,
 					 mmc_get_blk_desc(mmc), partition);
-		if (!CONFIG_IS_ENABLED(FALCON_ALLOW_FALLBACK)) {
+		if (!ret)
+			return 0;
+		if (!IS_ENABLED(CONFIG_SPL_OS_BOOT_ALLOW_FALLBACK)) {
 			if (ret) {
 				printf("Failed to load falcon payload: %d\n",
 				       ret);
-				printf("Set CONFIG_SPL_FALCON_ALLOW_FALLBACK to allow fallback\n");
+				printf("Set CONFIG_SPL_OS_BOOT_ALLOW_FALLBACK to allow fallback\n");
 			}
 			return ret;
 		}
