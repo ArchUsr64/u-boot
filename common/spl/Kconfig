@@ -16,6 +16,11 @@ config SPL
 	help
 	  If you want to build SPL as well as the normal image, say Y.
 
+config SPL_BUTTON
+	bool "Enable SPL BUTTON"
+	help
+		just a dummy
+
 menu "SPL configuration options"
 	depends on SPL
 

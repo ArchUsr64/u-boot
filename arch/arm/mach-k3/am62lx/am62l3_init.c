@@ -11,6 +11,8 @@
 #include <dm/uclass-internal.h>
 #include <hang.h>
 #include <spl.h>
+#include <button.h>
+#include <linux/delay.h>
 
 #include "../common.h"
 
@@ -57,3 +59,21 @@ u32 spl_mmc_boot_mode(struct mmc *mmc, const u32 boot_device)
 	}
 }
 
+#ifdef CONFIG_SPL_OS_BOOT
+int spl_start_uboot(void)
+{
+	return 0;
+	struct udevice *button;
+	int ret;
+
+	ret = button_get_by_label("BACK", &button);
+	if (ret) {
+		printf("Failed to get button state: %d\n", ret);
+		return 1;
+	}
+
+	ret = button_get_state(button);
+	printf("Testing Button state: %d\n", ret);
+	return ret == BUTTON_ON;
+}
+#endif

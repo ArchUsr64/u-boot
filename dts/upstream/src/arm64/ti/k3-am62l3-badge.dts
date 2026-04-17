@@ -57,6 +57,7 @@
 			label = "BACK";
 			linux,code = <KEY_BACK>;
 			gpios = <&gpio0 104 GPIO_ACTIVE_LOW>;
+			bootph-all;
 		};
 
 		button-up {
