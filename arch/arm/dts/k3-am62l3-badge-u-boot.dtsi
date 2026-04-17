@@ -14,3 +14,7 @@
 &scmi {
 	bootph-all;
 };
+
+&usb0 {
+	bootph-all;
+};
