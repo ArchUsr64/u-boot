@@ -473,31 +473,9 @@ static __maybe_unused void k3_dma_remove(void)
 
 static int k3_falcon_fdt_add_bootargs(void *fdt)
 {
-	struct disk_partition info;
-	struct blk_desc *dev_desc;
-	char bootmedia[32];
-	char bootpart[32];
-	char str[256];
+	printf("%s: %d\n", __func__, __LINE__);
+	char str[256] = "console=ttyS0,115200n8 vt.global_cursor_default=0 earlycon=ns16550a,mmio32,0x02800000";
 	int ret;
-
-	strlcpy(bootmedia, env_get("boot"), sizeof(bootmedia));
-	strlcpy(bootpart, env_get("bootpart"), sizeof(bootpart));
-	ret = blk_get_device_part_str(bootmedia, bootpart, &dev_desc, &info, 0);
-	if (ret < 0) {
-		printf("%s: Failed to get part details for %s %s [%d]\n",
-		       __func__, bootmedia, bootpart, ret);
-		return ret;
-	}
-
-	if (!CONFIG_IS_ENABLED(PARTITION_UUIDS)) {
-		printf("ERROR: Failed to find rootfs PARTUUID\n");
-		printf("%s: CONFIG_SPL_PARTITION_UUIDS not enabled\n",
-		       __func__);
-		return -EOPNOTSUPP;
-	}
-
-	snprintf(str, sizeof(str), "console=%s root=PARTUUID=%s rootwait",
-		 env_get("console"), disk_partition_uuid(&info));
 
 	ret = fdt_find_and_setprop(fdt, "/chosen", "bootargs", str,
 				   strlen(str) + 1, 1);
@@ -553,7 +531,7 @@ void spl_perform_arch_fixups(struct spl_image_info *spl_image)
 	void *fdt = spl_image_fdt_addr(spl_image);
 
 	if (!fdt)
-		return;
+		fdt = (void *)CONFIG_SPL_PAYLOAD_ARGS_ADDR;
 
 	fdt_fixup_reserved(fdt);
 
