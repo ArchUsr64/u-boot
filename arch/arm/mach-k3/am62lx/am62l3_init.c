@@ -62,7 +62,7 @@ u32 spl_mmc_boot_mode(struct mmc *mmc, const u32 boot_device)
 #ifdef CONFIG_SPL_OS_BOOT
 int spl_start_uboot(void)
 {
-	return 0;
+	return 1;
 	struct udevice *button;
 	int ret;
 
