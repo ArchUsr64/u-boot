@@ -84,61 +84,14 @@ static struct usb_endpoint_descriptor ep0_desc = {
 };
 
 static int ci_pullup(struct usb_gadget *gadget, int is_on);
-static int ci_ep_enable(struct usb_ep *ep,
-		const struct usb_endpoint_descriptor *desc);
-static int ci_ep_disable(struct usb_ep *ep);
-static int ci_ep_queue(struct usb_ep *ep,
-		struct usb_request *req, gfp_t gfp_flags);
-static int ci_ep_dequeue(struct usb_ep *ep, struct usb_request *req);
-static struct usb_request *
-ci_ep_alloc_request(struct usb_ep *ep, unsigned int gfp_flags);
-static void ci_ep_free_request(struct usb_ep *ep, struct usb_request *_req);
 
 static const struct usb_gadget_ops ci_udc_ops = {
 	.pullup = ci_pullup,
 };
 
-static const struct usb_ep_ops ci_ep_ops = {
-	.enable         = ci_ep_enable,
-	.disable        = ci_ep_disable,
-	.queue          = ci_ep_queue,
-	.dequeue	= ci_ep_dequeue,
-	.alloc_request  = ci_ep_alloc_request,
-	.free_request   = ci_ep_free_request,
-};
-
 __weak void ci_init_after_reset(struct ehci_ctrl *ctrl)
 {
 }
-
-/* Init values for USB endpoints. */
-static const struct usb_ep ci_ep_init[5] = {
-	[0] = {	/* EP 0 */
-		.maxpacket	= 64,
-		.name		= "ep0",
-		.ops		= &ci_ep_ops,
-	},
-	[1] = {
-		.maxpacket	= 512,
-		.name		= "ep1in-bulk",
-		.ops		= &ci_ep_ops,
-	},
-	[2] = {
-		.maxpacket	= 512,
-		.name		= "ep2out-bulk",
-		.ops		= &ci_ep_ops,
-	},
-	[3] = {
-		.maxpacket	= 512,
-		.name		= "ep3in-int",
-		.ops		= &ci_ep_ops,
-	},
-	[4] = {
-		.maxpacket	= 512,
-		.name		= "ep-",
-		.ops		= &ci_ep_ops,
-	},
-};
 
 static struct ci_drv controller = {
 	.gadget	= {
@@ -1046,149 +999,6 @@ static int ci_pullup(struct usb_gadget *gadget, int is_on)
 	} else {
 		udc_disconnect();
 	}
-
-	return 0;
-}
-
-static int ci_udc_probe(void)
-{
-	struct ept_queue_head *head;
-	int i;
-
-	const int num = 2 * NUM_ENDPOINTS;
-
-	const int eplist_min_align = 4096;
-	const int eplist_align = roundup(eplist_min_align, ARCH_DMA_MINALIGN);
-	const int eplist_raw_sz = num * sizeof(struct ept_queue_head);
-	const int eplist_sz = roundup(eplist_raw_sz, ARCH_DMA_MINALIGN);
-
-	/* The QH list must be aligned to 4096 bytes. */
-	controller.epts = memalign(eplist_align, eplist_sz);
-	if (!controller.epts)
-		return -ENOMEM;
-	memset(controller.epts, 0, eplist_sz);
-
-	controller.items_mem = memalign(ILIST_ALIGN, ILIST_SZ);
-	if (!controller.items_mem) {
-		free(controller.epts);
-		return -ENOMEM;
-	}
-	memset(controller.items_mem, 0, ILIST_SZ);
-
-	for (i = 0; i < 2 * NUM_ENDPOINTS; i++) {
-		/*
-		 * Configure QH for each endpoint. The structure of the QH list
-		 * is such that each two subsequent fields, N and N+1 where N is
-		 * even, in the QH list represent QH for one endpoint. The Nth
-		 * entry represents OUT configuration and the N+1th entry does
-		 * represent IN configuration of the endpoint.
-		 */
-		head = controller.epts + i;
-		if (i < 2)
-			head->config = CFG_MAX_PKT(EP0_MAX_PACKET_SIZE)
-				| CFG_ZLT | CFG_IOS;
-		else
-			head->config = CFG_MAX_PKT(EP_MAX_PACKET_SIZE)
-				| CFG_ZLT;
-		head->next = TERMINATE;
-		head->info = 0;
-
-		if (i & 1) {
-			ci_flush_qh(i / 2);
-			ci_flush_qtd(i / 2);
-		}
-	}
-
-	INIT_LIST_HEAD(&controller.gadget.ep_list);
-
-	/* Init EP 0 */
-	memcpy(&controller.ep[0].ep, &ci_ep_init[0], sizeof(*ci_ep_init));
-	controller.ep[0].desc = &ep0_desc;
-	INIT_LIST_HEAD(&controller.ep[0].queue);
-	controller.ep[0].req_primed = false;
-	controller.gadget.ep0 = &controller.ep[0].ep;
-	INIT_LIST_HEAD(&controller.gadget.ep0->ep_list);
-
-	/* Init EP 1..3 */
-	for (i = 1; i < 4; i++) {
-		memcpy(&controller.ep[i].ep, &ci_ep_init[i],
-		       sizeof(*ci_ep_init));
-		INIT_LIST_HEAD(&controller.ep[i].queue);
-		controller.ep[i].req_primed = false;
-		list_add_tail(&controller.ep[i].ep.ep_list,
-			      &controller.gadget.ep_list);
-	}
-
-	/* Init EP 4..n */
-	for (i = 4; i < NUM_ENDPOINTS; i++) {
-		memcpy(&controller.ep[i].ep, &ci_ep_init[4],
-		       sizeof(*ci_ep_init));
-		INIT_LIST_HEAD(&controller.ep[i].queue);
-		controller.ep[i].req_primed = false;
-		list_add_tail(&controller.ep[i].ep.ep_list,
-			      &controller.gadget.ep_list);
-	}
-
-	ci_ep_alloc_request(&controller.ep[0].ep, 0);
-	if (!controller.ep0_req) {
-		free(controller.items_mem);
-		free(controller.epts);
-		return -ENOMEM;
-	}
-
-	return 0;
-}
-
-int usb_gadget_register_driver(struct usb_gadget_driver *driver)
-{
-	int ret;
-
-	if (!driver)
-		return -EINVAL;
-	if (!driver->bind || !driver->setup || !driver->disconnect)
-		return -EINVAL;
-
-#if CONFIG_IS_ENABLED(DM_USB)
-	ret = usb_setup_ehci_gadget(&controller.ctrl);
-#else
-	ret = usb_lowlevel_init(0, USB_INIT_DEVICE, (void **)&controller.ctrl);
-#endif
-	if (ret)
-		return ret;
-
-	ret = ci_udc_probe();
-	if (ret) {
-		DBG("udc probe failed, returned %d\n", ret);
-		return ret;
-	}
-
-	ret = driver->bind(&controller.gadget);
-	if (ret) {
-		DBG("driver->bind() returned %d\n", ret);
-		return ret;
-	}
-	controller.driver = driver;
-
-	return 0;
-}
-
-int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
-{
-	udc_disconnect();
-
-	driver->unbind(&controller.gadget);
-	controller.driver = NULL;
-
-	ci_ep_free_request(&controller.ep[0].ep, &controller.ep0_req->req);
-	free(controller.items_mem);
-	free(controller.epts);
-
-#if CONFIG_IS_ENABLED(DM_USB)
-	usb_remove_ehci_gadget(&controller.ctrl);
-#else
-	usb_lowlevel_stop(0);
-	controller.ctrl = NULL;
-#endif
 
 	return 0;
 }
