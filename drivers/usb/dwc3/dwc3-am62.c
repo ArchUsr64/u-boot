@@ -1,3 +1,4 @@
+#define DEBUG
 // SPDX-License-Identifier: GPL-2.0
 /*
  * TI AM62 specific glue layer for DWC3

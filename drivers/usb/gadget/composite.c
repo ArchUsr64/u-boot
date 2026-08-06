@@ -5,7 +5,7 @@
  * Copyright (C) 2006-2008 David Brownell
  * U-Boot porting: Lukasz Majewski <l.majewski@samsung.com>
  */
-#undef DEBUG
+#define DEBUG
 
 #include <log.h>
 #include <dm/devres.h>
