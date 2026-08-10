@@ -2901,23 +2901,45 @@ static const struct usb_gadget_ops dwc3_gadget_ops = {
 static irqreturn_t dwc3_check_event_buf(struct dwc3 *dwc)
 {
 	struct dwc3_event_buffer *evt;
+	u32 amount;
 	u32 count;
 	u32 reg;
 
 	evt = dwc->ev_buf;
+
+	if (evt->flags & DWC3_EVENT_PENDING)
+		return IRQ_HANDLED;
+
 
 	count = dwc3_readl(dwc->regs, DWC3_GEVNTCOUNT(0));
 	count &= DWC3_GEVNTCOUNT_MASK;
 	if (!count)
 		return IRQ_NONE;
 
+	if (count > evt->length) {
+		dev_err(dwc->dev, "invalid count(%u) > evt->length(%u)\n",
+			count, evt->length);
+		return IRQ_NONE;
+	}
+
 	evt->count = count;
 	evt->flags |= DWC3_EVENT_PENDING;
 
 	/* Mask interrupt */
-	reg = dwc3_readl(dwc->regs, DWC3_GEVNTSIZ(0));
-	reg |= DWC3_GEVNTSIZ_INTMASK;
-	dwc3_writel(dwc->regs, DWC3_GEVNTSIZ(0), reg);
+        dwc3_writel(dwc->regs, DWC3_GEVNTSIZ(0),
+                    DWC3_GEVNTSIZ_INTMASK | DWC3_GEVNTSIZ_SIZE(evt->length));
+
+        /* The controller filled the buffer over DMA, drop our stale lines */
+        dwc3_invalidate_cache((uintptr_t)evt->buf, evt->length);
+
+        amount = min(count, evt->length - evt->lpos);
+        memcpy(evt->cache + evt->lpos, evt->buf + evt->lpos, amount);
+
+        if (amount < count)
+                memcpy(evt->cache, evt->buf, count - amount);
+
+        dwc3_writel(dwc->regs, DWC3_GEVNTCOUNT(0), count);
+
 
 	return IRQ_WAKE_THREAD;
 }
@@ -4370,9 +4392,9 @@ void dwc3_gadget_uboot_handle_interrupt(struct dwc3 *dwc)
 	int ret = dwc3_interrupt(0, dwc);
 
 	if (ret == IRQ_WAKE_THREAD) {
-		struct dwc3_event_buffer *evt;
+                struct dwc3_event_buffer *evt = dwc->ev_buf;
+                dwc3_thread_interrupt(0, evt);
 
-		dwc3_thread_interrupt(0, dwc);
 
 		/* Clean + Invalidate the buffer after touching it */
 		dwc3_flush_cache((uintptr_t)evt->buf, evt->length);
